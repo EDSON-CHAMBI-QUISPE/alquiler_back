@@ -89,7 +89,7 @@ return data; // ahora sí es GoogleUserProfile
     generateTokens(user: UsuarioDocument): AuthTokens {
         console.log({user})
         const payload: JWTPayload = {
-            userId: user._id.toString(),
+            userId: String((user as any)?._id),
             email: user.correo,
         }
         
