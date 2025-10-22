@@ -7,7 +7,7 @@ export const validateData = (req: Request, res: Response, next: NextFunction): v
   try{
   const { nombre, correo, telefono, password, terminosYCondiciones }: CrearUsuarioDto = limpiarInput(req.body)as CrearUsuarioDto;
   
-  const nombreValido = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{2,50}$/;
+  const nombreValido = /^[\p{L}\p{M}0-9 .'\-_]{2,50}$/u;
   const telefonoValido = /^[1-9][0-9]{7}$/;
   const correoValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
