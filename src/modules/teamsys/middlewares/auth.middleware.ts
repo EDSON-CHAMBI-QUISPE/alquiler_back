@@ -1,0 +1,45 @@
+import { NextFunction, Request, Response } from "express";
+import { AuthService } from "../services/auth.service";
+import { JWTPayload } from "../types/auth.types";
+
+declare global {
+    namespace Express {
+        interface Request {
+            authuser?: JWTPayload
+            token?: string;
+        }
+    }
+} 
+
+export const authMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        
+        const authHeader = req.headers.authorization as string;
+
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            
+            res.status(401).json({
+                success: false,
+                'message': 'Unauthorized'
+            });
+        }
+
+        const token = authHeader.split(' ')[1];
+        //console.log('✅ Token recibido:', token.substring(0, 20) + '...');
+
+        const authService = new AuthService();
+        const payload = authService.verifyAccessToken(token);
+        //console.log('✅ Payload decodificado:', payload);
+
+        /*req.authuser = payload;
+        req.token = token;
+        //console.log('✅ req.user asignado:', req.user);
+        */
+       (req as any).user = payload;
+        (req as any).token = token;
+        console.log('✅ req.user asignado (como any):', (req as any).user);
+        next();
+    } catch (error) {
+        next(error);
+    }
+}
