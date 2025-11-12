@@ -93,8 +93,24 @@ export class UsuarioService {
    * Actualizar un usuario existente
    */
   async update(id: string, data: Partial<CrearUsuarioDto | UserDocument>): Promise<UserDocument | null> {
-    return await Usuario.findByIdAndUpdate(id, data);
-  }
+  return await Usuario.findByIdAndUpdate(
+    id,
+    data,
+    {
+      new: true,           // devuelve el documento actualizado
+      overwrite: true,     // reemplaza el documento existente por el nuevo contenido
+      runValidators: true, // aplica las validaciones del esquema
+    }
+  );
+}
+
+async eliminarPasswordUser(userId: string): Promise<UserDocument | null> {
+  return await Usuario.findByIdAndUpdate(
+    userId,
+    { $unset: { password: 1 } }, // 🔥 elimina el campo por completo
+    { new: true }                // devuelve el documento actualizado
+  );
+}
 
   /**
    * Eliminar un usuario por ID
@@ -213,6 +229,70 @@ async cambiarContraseña(
 async getUserByEmail(email: string): Promise<UserDocument | null> {
   return await Usuario.findOne({ correo: email });
 }
+async updateTwoFactorSecret(userId: string, secret: string, enabled: boolean): Promise<UserDocument> {
+    const user = await this.getById(userId);
+
+    if (!user) {
+      throw new Error("User Not Found");
+    }
+
+    await Usuario.findByIdAndUpdate(user.id, {
+      twoFactorSecret: secret,
+      twoFactorEnabled: enabled
+    });
+
+    return user;
+  }
+
+  async disableTwoFactor(userId: string): Promise<UserDocument> {
+    const user = await this.getById(userId);
+
+    if (!user) {
+      throw new Error("User Not Found");
+    }
+
+    await Usuario.findByIdAndUpdate(user.id, {
+      twoFactorSecret: undefined,
+      twoFactorEnabled: false
+    });
+
+    return user;
+  }
+
+  async setPasswordUnderCorreo(userId: string, newPassword: string): Promise<UserDocument | null> {
+  const user = await Usuario.findById(userId).lean<UserDocument | null>();
+  if (!user) return null;
+
+  // reconstruimos el documento completo en el orden exacto del schema
+  const updatedUser = {
+    nombre: user.nombre,
+    apellido: user.apellido,
+    telefono: user.telefono,
+
+    correo: user.correo,
+    password: newPassword, // 👈 queda justo debajo de correo
+
+    fotoPerfil: user.fotoPerfil,
+    ubicacion: user.ubicacion,
+    terminosYCondiciones: user.terminosYCondiciones,
+
+    authProvider: user.authProvider,
+    googleId: user.googleId,
+
+    rol: user.rol,
+    twoFactorSecret: user.twoFactorSecret,
+    twoFactorEnabled: user.twoFactorEnabled,
+    twoFactorBackupCodes: user.twoFactorBackupCodes,
+  };
+
+  // Reemplazamos el documento entero para mantener el orden físico de las claves
+  return await Usuario.findOneAndReplace(
+    { _id: userId },
+    updatedUser,
+    { new: true, runValidators: true }
+  );
+}
+
 }
 
 export default new UsuarioService();

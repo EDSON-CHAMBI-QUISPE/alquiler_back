@@ -196,15 +196,30 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     // registarr en sessions
     const userAgent = req.headers['user-agent'] || 'Unknown';
     const ip = (req.ip || req.socket.remoteAddress || 'Unknown').replace('::ffff:', '');
-    const { accessToken, refreshToken } = authService.generateTokens(usuario);
-    await sessionService.create(usuario._id.toString(), userAgent, ip, accessToken, refreshToken);
+    const session = await sessionService.getSessionByIp(ip, usuario.id);
+
+    if (! session) {
+      const { accessToken, refreshToken } = authService.generateTokens(usuario);
+      await sessionService.create(usuario._id.toString(), userAgent, ip, accessToken, refreshToken);
+
+      res.json({
+        success: true,
+        message: 'Inicio de sesión exitoso',
+        data: {
+          accessToken,
+          refreshToken,
+          user: usuario,
+        }
+      });
+      return;
+    }
 
     res.json({
       success: true,
       message: 'Inicio de sesión exitoso',
       data: {
-        accessToken,
-        refreshToken,
+        accessToken: session.token,
+        refreshToken: session.refreshToken,
         user: usuario,
       }
     });
@@ -422,6 +437,7 @@ export const agregarAutentificacion = async (req: Request, res: Response): Promi
         return;
         
       }
+      let data;
         if (provider === 'local') {
         if (!password) {
           res.status(400).json({ success: false, message: 'Debe proporcionar una contraseña para habilitar "local".' });
@@ -431,6 +447,7 @@ export const agregarAutentificacion = async (req: Request, res: Response): Promi
           res.status(400).json({ success: false, message: 'La contraseña no cumple con los requisitos mínimos.' });
           return;
         }
+        data=await teamsysService.setPasswordUnderCorreo(req.params.id, password);
       }
       if(provider=='google'){
         if(!(user.correo===email)){
@@ -438,14 +455,14 @@ export const agregarAutentificacion = async (req: Request, res: Response): Promi
             return;
         }
         user.authProvider=provider;
+        data=await teamsysService.update(req.params.id, user);
       }
       providers.push(provider);
-      if(provider=='google')user.authProvider=provider;
-      auth.authProvider=providers;
       
     
-
-    const data = await teamsysService.update(req.params.id, user);
+      console.log(user)
+    
+    console.log(data)
     const authData=await teamsysService.updateUserAuthProviders(req.params.id,auth.authProvider)
     if (!data || !authData) {
       res.status(404).json({
@@ -481,16 +498,18 @@ export const eliminarAutentificacion = async (req: Request, res: Response): Prom
         res.status(409).json({ success: false, message: 'No puedes eliminar tu único método de autenticación.' });
         return;
       }
-
+      console.log(provider)
       // Si eliminamos LOCAL, removemos password
-      if (provider === 'local') {
+      let data;
+      if (provider == 'local') {
         user.password = undefined;
+        data = await teamsysService.eliminarPasswordUser(req.params.id);
       }
-      if(provider=='google')user.authProvider='local';
+      if(provider=='google'){user.authProvider='local';
       // Eliminar provider
-      auth.authProvider = providers.filter(p => p !== provider);
-
-    const data = await teamsysService.update(req.params.id, user);
+      console.log(user)
+    data=await teamsysService.update(req.params.id,user);}
+    auth.authProvider = providers.filter(p => p !== provider);
     const authData=await teamsysService.updateUserAuthProviders(req.params.id,auth.authProvider)
     if (!data || !authData) {
       res.status(404).json({
@@ -515,7 +534,8 @@ export const cambiarContraseña = async (req: Request, res: Response): Promise<v
   try {
     //const { userId} = req.user as JWTPayload;
     //2daModif          const user = req.user as JWTPayload | undefined;
-    const user = (req as any).user as JWTPayload;
+    //const user = (req as any).user as JWTPayload; 12/11/25
+    const user = (req as any).authuser as JWTPayload;
     console.log('🔍 user en controlador:', user);
     //if(!userId){
     if (!user || !user.userId) {

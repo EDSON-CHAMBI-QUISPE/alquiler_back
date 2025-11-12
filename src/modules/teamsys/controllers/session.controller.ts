@@ -67,7 +67,7 @@ export class SessionController {
 	}
 	/**
 	  * Eliminar todas las sesiones excepto la actual
-	* DELETE /api/sessions/user/:userId/all-except-current
+	* DELETE /api/sessions/user/all-except-current
 	*/
 	deleteAllSessionsExceptCurrent = async (req: Request, res: Response): Promise<void> => {
 		try {
@@ -84,7 +84,12 @@ export class SessionController {
 
 			const token = authHeader.split(' ')[1];
 
-			const session = await this.sessionService.getSessionsByToken(token);
+			const session = await this.sessionService.getSessionByToken(token);
+
+			if (!session) {
+				throw new Error('Session no encontrada');
+			}
+
 			await this.sessionService.deleteAllSessionsExceptCurrent(userId, session._id.toString());
 
 			res.status(200).json({
