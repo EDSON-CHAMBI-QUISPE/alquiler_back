@@ -29,6 +29,8 @@ const router = Router();
 // === RUTAS DE AUTENTICACIÓN ===
 router.post('/auth/register', validateData, registerUser);
 router.post('/auth/login', loginUser);
+router.post("/google/callback", authController.googleCallback);
+router.get("/me", authMiddleware, authController.getCurrentUser);
 //h4
 router.post('/magic-link/request', magicLinkController.requestMagicLink);
 //router.get('/magic-link/verify', magicLinkController.verifyMagicLink);
@@ -39,6 +41,10 @@ router.post('/magic-link/verify', magicLinkController.verifyMagicLink);
 /**
  * sessions routes
  */
+router.get("/sessions/user/:userId", authMiddleware, sessionController.getSessionsByUserId);
+router.delete("/sessions/:sessionId/", authMiddleware, sessionController.deleteSession);
+router.delete("/sessions/user/all-except-current", authMiddleware, sessionController.deleteAllSessionsExceptCurrent);
+
 // === RUTAS DE USUARIO ESPECÍFICAS ===
 //import { registerUser, loginUser} from '../controllers/teamsys.controller';
 //router.put('/usuario/cambiar-contraseña', authMiddleware, cambiarContraseña);
@@ -56,16 +62,17 @@ router.post('/usuario', validateData, create);
 router.put('/usuario/:id', update);
 /**eliminar un usr por id */
 router.delete('/usuario/:id', remove);
+router.post('/auth/login', loginUser);
 router.get('/exists', existsByEmail);
 
 /**
  * Auth routes
  */
-router.post('/auth-Method/:id', authMiddleware, agregarAutentificacion);
-router.delete('/auth-Method/:id', authMiddleware, eliminarAutentificacion);
-router.get('/auth-Method/:id', authMiddleware, getAuthById);
-router.post('/usuario/telefono/:id', authMiddleware, updateTelefono);
-router.post('/usuario/ubicacion/:id', authMiddleware, updateMapa);
+router.post('/auth-Method/:id',agregarAutentificacion);
+router.delete('/auth-Method/:id',eliminarAutentificacion);
+router.get('/auth-Method/:id',getAuthById);
+router.post('/usuario/telefono/:id',updateTelefono);
+router.post('/usuario/ubicacion/:id',updateMapa);
 router.post("/google/callback", authController.googleCallback);
 router.get("/me", authMiddleware, authController.getCurrentUser);
 
@@ -75,7 +82,7 @@ router.get("/me", authMiddleware, authController.getCurrentUser);
  */
 router.get("/sessions/user/:userId", authMiddleware, sessionController.getSessionsByUserId);
 router.delete("/sessions/:sessionId/", authMiddleware, sessionController.deleteSession);
-router.delete("/sessions/user/all-except-current", authMiddleware, sessionController.deleteAllSessionsExceptCurrent);
+//router.delete("/sessions/user/all-except-current", authMiddleware, sessionController.deleteAllSessionsExceptCurrent);
 
 router.post("/2fa/setup", authMiddleware, twofactorController.setupTwoFactor);
 router.post("/2fa/verify", authMiddleware, twofactorController.verifyAndEnable);

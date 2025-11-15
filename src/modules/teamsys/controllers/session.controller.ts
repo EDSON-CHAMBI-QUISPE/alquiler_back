@@ -71,9 +71,6 @@ export class SessionController {
 	* DELETE /api/sessions/user/all-except-current
 	*/
 	deleteAllSessionsExceptCurrent = async (req: Request, res: Response): Promise<void> => {
-		try {
-			const { email, userId } = req.authuser as JWTPayload;
-			const token = req.token!;
   try {
     const { email, userId } = req.authuser as JWTPayload;
 
