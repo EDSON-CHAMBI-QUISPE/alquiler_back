@@ -112,7 +112,7 @@ async deactivateSessionsByTokens(
     }
   );
 
-  return result;
+  return result as unknown as UpdateResult<Document>;
 }
 
 	/**
