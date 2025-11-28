@@ -43,11 +43,11 @@ export class AuthController {
         const usuario=await teamsysService.verificarCorreo(result.user.correo)
         console.log(usuario)
         if(usuario==null){
-          res.status(500).json({
-          success: false,
-          data: result,
-          message: 'error en la back',
-      });
+          res.status(200).json({
+        success: true,
+        data: result,
+        message: 'Usuario recuperado correctamente!',
+    });
       return;
         }
         
