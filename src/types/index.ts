@@ -1,7 +1,5 @@
-import { Request } from 'express';
-
+// src/types/index.ts      prueba
 export interface IUser {
-  _id?: string;
   name: string;
   email: string;
   password: string;

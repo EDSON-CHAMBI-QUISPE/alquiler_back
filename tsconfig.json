@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    /* === Salida y estructura === */
     "outDir": "./dist",
     "rootDir": "./src",
     "sourceMap": true,
@@ -19,20 +18,17 @@
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-
-    /* === Imports === */
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
-
-    /* === Alias === */
     "baseUrl": "./src",
     "paths": {
       "@/*": ["*"],
       "@config/*": ["config/*"],
       "@modules/*": ["modules/*"],
-      "@controllers/*": ["modules/*"],
-      "@services/*": ["modules/*"],
+      "@routes/*": ["routes/*"],
+      "@controllers/*": ["controllers/*"],
+      "@services/*": ["services/*"],
       "@models/*": ["models/*", "modules/*"],
       "@utils/*": ["utils/*"]
     },
